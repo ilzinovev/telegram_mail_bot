@@ -1,0 +1,9 @@
+{
+    "require": {
+        "ddeboer/imap": "^1.12",
+        "telegram-bot/api": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {"": "app/"}
+    }
+}
