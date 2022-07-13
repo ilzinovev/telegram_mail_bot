@@ -38,13 +38,12 @@ class App
 
     public function run()
     {
-        if($this->messages->count()>0) {
+        if ($this->messages->count() > 0) {
             $emails = $this->mail_prepare($this->messages);
             $this->send_mail_with_valid_address($emails, $this->valid_mails);
             $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
-        }
-        else {
-            $this->telegram_bot->sendMessage($this->chat_id, 'пусто','HTML');
+        } else {
+            $this->telegram_bot->sendMessage($this->chat_id, 'пусто', 'HTML');
         }
         $this->connection->close();
     }
@@ -56,18 +55,19 @@ class App
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
             $emails[$key]['html'] = $this->mail_clean(
                 strip_tags(
-                    $message->getBodyHtml().$message->getBodyText()
+                    $message->getBodyHtml() . $message->getBodyText()
                 ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
         return $emails;
     }
 
-    public function send_mail_with_valid_address($emails, $valid_address)
+    public function send_mail_with_valid_address(&$emails, $valid_address)
     {
-        foreach ($emails as $email) {
+        foreach ($emails as $key => $email) {
             if (in_array($email['mail'], $valid_address))
                 $this->send_mail_to_telegram($email);
+            unset($emails[$key]);
         }
     }
 
@@ -80,38 +80,40 @@ class App
             }
         }
     }
+
     public function send_mail_to_telegram($email)
     {
 
         $message = "<b>Новое письмо</b>\n";
-        $message .="От: <b> {$email['mail']}</b>\n";
-        $message .="Тема: {$email['subject']}\n";
-        $message .="Содержимое письма:\n\n {$email['html']}";
-        $this->telegram_bot->sendMessage($this->chat_id, $message,'HTML');
-        $this->send_attachments_to_telegram($email['attachments'],$email['mail']);
+        $message .= "От: <b> {$email['mail']}</b>\n";
+        $message .= "Тема: {$email['subject']}\n";
+        $message .= "Содержимое письма:\n\n {$email['html']}";
+        $this->telegram_bot->sendMessage($this->chat_id, $message, 'HTML');
+        $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
     }
 
-    public function send_attachments_to_telegram($attachments,$email)
+    public function send_attachments_to_telegram($attachments, $email)
     {
         foreach ($attachments as $attachment) {
             if (!empty($attachment->getFilename())) {
                 $file_path = ROOT . '/tmp/' . $attachment->getFilename();
                 file_put_contents($file_path, $attachment->getDecodedContent());
                 $document = new \CURLFile($file_path);
-                $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от '.$email);
+                $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от ' . $email);
                 array_map('unlink', array_filter((array)glob(ROOT . '/tmp/*')));
             }
         }
     }
 
-    public function mail_clean($message){
-        $remove_text=[
+    public function mail_clean($message)
+    {
+        $remove_text = [
             '-------- Пересылаемое сообщение --------',
             '-------- Конец пересылаемого сообщения --------',
             'Данное письмо сформировано автоматически'
         ];
-        foreach ($remove_text as $item){
-            $message=str_replace($item,'',$message);
+        foreach ($remove_text as $item) {
+            $message = str_replace($item, '', $message);
         }
         return $message;
     }
