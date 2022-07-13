@@ -26,7 +26,6 @@ class App
         $this->mailbox = $this->connection->getMailbox('INBOX');
         $this->date = new DateTimeImmutable(date('Y-m-d', time()));
         $this->search = new SearchExpression();
-        $this->search->addCondition(new Unseen());
         $this->search->addCondition(new NewMessage());
         $this->search->addCondition(new Since($this->date));
         $this->messages = $this->mailbox->getMessages($this->search);
