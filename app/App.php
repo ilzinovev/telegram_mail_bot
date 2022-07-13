@@ -42,8 +42,6 @@ class App
             $emails = $this->mail_prepare($this->messages);
             $this->send_mail_with_valid_address($emails, $this->valid_mails);
             $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
-        } else {
-            $this->telegram_bot->sendMessage($this->chat_id, 'пусто', 'HTML');
         }
         $this->connection->close();
     }
