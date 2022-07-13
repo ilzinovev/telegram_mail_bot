@@ -2,11 +2,7 @@
 
 use Ddeboer\Imap\Server;
 use Ddeboer\Imap\SearchExpression;
-use Ddeboer\Imap\Search\Email\From;
 use Ddeboer\Imap\Search\Date\Since;
-use Ddeboer\Imap\Search\Date\On;
-use Ddeboer\Imap\Search\Text\Body;
-use Ddeboer\Imap\Message\Attachment;
 use Ddeboer\Imap\Search\Flag\Unseen;
 use Ddeboer\Imap\Search\State\NewMessage;
 use TelegramBot\Api\BotApi;
@@ -58,7 +54,10 @@ class App
         foreach ($messages as $key => $message) {
             $emails[$key]['subject'] = $message->getSubject();
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
-            $emails[$key]['html'] = $this->mail_clean(strip_tags($message->getBodyHtml()));
+            $emails[$key]['html'] = $this->mail_clean(
+                strip_tags(
+                    $message->getBodyHtml().$message->getBodyText()
+                ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
         return $emails;
