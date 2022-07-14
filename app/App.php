@@ -26,10 +26,10 @@ class App
         $this->mailbox = $this->connection->getMailbox('INBOX');
         $this->date = new DateTimeImmutable(date('Y-m-d', time()));
         $this->search = new SearchExpression();
-        $this->search->addCondition(new NewMessage());
         $this->search->addCondition(new Since($this->date));
         $this->messages = $this->mailbox->getMessages($this->search);
         $this->telegram_bot = new BotApi($telegram_token);
+        $this->telegram_bot->setCurlOption(CURLOPT_TIMEOUT, 15);
         $this->chat_id = $chat_id;
         $this->valid_mails = $valid_mails;
         $this->valid_subjects = $valid_subjects;
@@ -39,8 +39,10 @@ class App
     {
         if ($this->messages->count() > 0) {
             $emails = $this->mail_prepare($this->messages);
-            $this->send_mail_with_valid_address($emails, $this->valid_mails);
-            $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
+            if (!empty($emails)) {
+                $this->send_mail_with_valid_address($emails, $this->valid_mails);
+                $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
+            }
         }
         $this->connection->close();
     }
@@ -48,6 +50,9 @@ class App
     public function mail_prepare($messages)
     {
         foreach ($messages as $key => $message) {
+            if (!$this->check_id((string)$message->getNumber()))
+                continue;
+            $emails[$key]['id'] = $message->getNumber();
             $emails[$key]['subject'] = $message->getSubject();
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
             $emails[$key]['html'] = $this->mail_clean(
@@ -56,7 +61,23 @@ class App
                 ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
-        return $emails;
+        if (!empty($emails))
+            return $emails;
+        else
+            return false;
+    }
+
+    public function check_id($id)
+    {
+        $last_id_file_path = ROOT . '/app/last_id.txt';
+        $last_id = (int)file_get_contents('last_id.txt', $last_id_file_path);
+        if (empty($last_id))
+            file_put_contents($last_id_file_path, $id);
+        if ($last_id < $id) {
+            file_put_contents($last_id_file_path, $id);
+            return true;
+        } else
+            return false;
     }
 
     public function send_mail_with_valid_address(&$emails, $valid_address)
@@ -93,7 +114,7 @@ class App
     {
         foreach ($attachments as $attachment) {
             if (!empty($attachment->getFilename())) {
-                $file_path = ROOT . '/tmp/' . $attachment->getFilename();
+                $file_path = ROOT . '/tmp/' . str_replace('/', '', $attachment->getFilename());
                 file_put_contents($file_path, $attachment->getDecodedContent());
                 $document = new \CURLFile($file_path);
                 $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от ' . $email);
