@@ -18,8 +18,9 @@ class App
     private $chat_id;
     private $valid_mails;
     private $valid_subjects;
+    private $stop_list;
 
-    public function __construct($hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects)
+    public function __construct($hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list)
     {
         $this->server = new Server($hostname);
         $this->connection = $this->server->authenticate($user, $password);
@@ -33,6 +34,7 @@ class App
         $this->chat_id = $chat_id;
         $this->valid_mails = $valid_mails;
         $this->valid_subjects = $valid_subjects;
+        $this->stop_list = $stop_list;
     }
 
     public function run()
@@ -50,7 +52,7 @@ class App
     public function mail_prepare($messages)
     {
         foreach ($messages as $key => $message) {
-            if (!$this->check_id((string)$message->getNumber()))
+            if (!$this->check_id((string)$message->getNumber()) or !$this->check_stop_list($message))
                 continue;
             $emails[$key]['id'] = $message->getNumber();
             $emails[$key]['subject'] = $message->getSubject();
@@ -80,6 +82,17 @@ class App
             return false;
     }
 
+    public function check_stop_list($message)
+    {
+        $address = $message->getFrom()->getAddress();
+        $subject = $message->getSubject();
+        foreach ($this->stop_list as $item) {
+            if ($address == $item[0] and (strripos($subject, $item[1]) or strripos($subject, $item[1]) == 0))
+                return false;
+        }
+        return true;
+    }
+
     public function send_mail_with_valid_address(&$emails, $valid_address)
     {
         foreach ($emails as $key => $email) {
@@ -93,7 +106,7 @@ class App
     {
         foreach ($emails as $email) {
             foreach ($valid_subject as $subject) {
-                if (strripos($email['subject'], $subject))
+                if (strripos($email['subject'], $subject) or strripos($email['subject'], $subject) == 0)
                     $this->send_mail_to_telegram($email);
             }
         }
