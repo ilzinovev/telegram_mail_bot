@@ -87,7 +87,7 @@ class App
         $address = $message->getFrom()->getAddress();
         $subject = $message->getSubject();
         foreach ($this->stop_list as $item) {
-            if ($address == $item[0] and (strripos($subject, $item[1]) or strripos($subject, $item[1]) == 0))
+            if ($address == $item[0] and (strripos($subject, $item[1]) or strripos($subject, $item[1]) === 0))
                 return false;
         }
         return true;
@@ -106,7 +106,7 @@ class App
     {
         foreach ($emails as $email) {
             foreach ($valid_subject as $subject) {
-                if (strripos($email['subject'], $subject) or strripos($email['subject'], $subject) == 0)
+                if (strripos($email['subject'], $subject) or strripos($email['subject'], $subject) === 0)
                     $this->send_mail_to_telegram($email);
             }
         }
