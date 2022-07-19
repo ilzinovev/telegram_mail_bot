@@ -63,6 +63,7 @@ class App
                 ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
+
         if (!empty($emails))
             return $emails;
         else
@@ -87,6 +88,8 @@ class App
         $address = $message->getFrom()->getAddress();
         $subject = $message->getSubject();
         foreach ($this->stop_list as $item) {
+            if (strripos($subject, 'Re:') or strripos($subject, 'Re:') === 0)
+                return false;
             if ($address == $item[0] and (strripos($subject, $item[1]) or strripos($subject, $item[1]) === 0))
                 return false;
         }
@@ -96,9 +99,10 @@ class App
     public function send_mail_with_valid_address(&$emails, $valid_address)
     {
         foreach ($emails as $key => $email) {
-            if (in_array($email['mail'], $valid_address))
+            if (in_array($email['mail'], $valid_address)) {
                 $this->send_mail_to_telegram($email);
-            unset($emails[$key]);
+                unset($emails[$key]);
+            }
         }
     }
 
@@ -114,11 +118,12 @@ class App
 
     public function send_mail_to_telegram($email)
     {
-
         $message = "<b>Новое письмо</b>\n";
         $message .= "От: <b> {$email['mail']}</b>\n";
         $message .= "Тема: {$email['subject']}\n";
         $message .= "Содержимое письма:\n\n {$email['html']}";
+        if (mb_strlen($message) > 4096)
+            $message = mb_substr($message, 0, 4096);
         $this->telegram_bot->sendMessage($this->chat_id, $message, 'HTML');
         $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
     }
