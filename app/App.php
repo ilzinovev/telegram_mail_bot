@@ -3,8 +3,6 @@
 use Ddeboer\Imap\Server;
 use Ddeboer\Imap\SearchExpression;
 use Ddeboer\Imap\Search\Date\Since;
-use Ddeboer\Imap\Search\Flag\Unseen;
-use Ddeboer\Imap\Search\State\NewMessage;
 use TelegramBot\Api\BotApi;
 
 class App
@@ -19,8 +17,10 @@ class App
     private $valid_mails;
     private $valid_subjects;
     private $stop_list;
+    private $is_parse_table;
+    private $message;
 
-    public function __construct($hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list)
+    public function __construct($hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list,$is_parse_table)
     {
         $this->server = new Server($hostname);
         $this->connection = $this->server->authenticate($user, $password);
@@ -35,6 +35,7 @@ class App
         $this->valid_mails = $valid_mails;
         $this->valid_subjects = $valid_subjects;
         $this->stop_list = $stop_list;
+        $this->is_parse_table = $is_parse_table;
     }
 
     public function run()
@@ -54,12 +55,13 @@ class App
         foreach ($messages as $key => $message) {
             if (!$this->check_id((string)$message->getNumber()) or !$this->check_stop_list($message))
                 continue;
+            $this->message = $message;
             $emails[$key]['id'] = $message->getNumber();
             $emails[$key]['subject'] = $message->getSubject();
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
             $emails[$key]['html'] = $this->mail_clean(
                 strip_tags(
-                    $message->getBodyHtml() . $message->getBodyText()
+                    $this->html_parse_table($message->getBodyHtml() . $message->getBodyText())
                 ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
@@ -88,9 +90,9 @@ class App
         $address = $message->getFrom()->getAddress();
         $subject = $message->getSubject();
         foreach ($this->stop_list as $item) {
-            if (strripos($subject, 'Re:') or strripos($subject, 'Re:') === 0)
+            if (mb_strripos($subject, 'Re:') or mb_strripos($subject, 'Re:') === 0)
                 return false;
-            if ($address == $item[0] and (strripos($subject, $item[1]) or strripos($subject, $item[1]) === 0))
+            if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0))
                 return false;
         }
         return true;
@@ -110,7 +112,7 @@ class App
     {
         foreach ($emails as $email) {
             foreach ($valid_subject as $subject) {
-                if (strripos($email['subject'], $subject) or strripos($email['subject'], $subject) === 0)
+                if (mb_strripos($email['subject'], $subject) or mb_strripos($email['subject'], $subject) === 0)
                     $this->send_mail_to_telegram($email);
             }
         }
@@ -152,5 +154,43 @@ class App
             $message = str_replace($item, '', $message);
         }
         return $message;
+    }
+
+    public function html_parse_table($html)
+    {
+        if (!empty($html)) {
+            $address = $this->message->getFrom()->getAddress();
+            $subject = $this->message->getSubject();
+            foreach ($this->is_parse_table as $item) {
+                if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0)) {
+                    $dom = new DOMDocument();
+                    $source = mb_convert_encoding($html, 'HTML-ENTITIES', 'utf-8');
+                    $dom->loadHTML($source);
+                    $tables = $dom->getElementsByTagName('tr');
+                    if ($tables->length > 0) {
+                        foreach ($tables as $key => $table)
+                            foreach ($table->childNodes as $child) {
+                                $data[$key][] = $child->textContent;
+                                $child->textContent = '';
+                            }
+                        $output = array();
+                        $headers = $data[0];
+                        unset($data[0]);
+                        foreach ($data as $k => $item)
+                            foreach ($item as $j => $t)
+                                $output[$k][] = $headers[$j] . ' : ' . $t;
+
+                        $message = '';
+                        foreach ($output as $item) {
+                            $message .= '-----------' . "\n";
+                            foreach ($item as $text)
+                                $message .= $text . "\n";
+                        }
+                        return $message;
+                    }
+                }
+            }
+        }
+        return $html;
     }
 }

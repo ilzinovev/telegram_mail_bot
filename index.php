@@ -10,7 +10,8 @@ $app = new App(
     TELEGRAM_CHAT_ID,
     VALID_MAILS,
     VALID_SUBJECTS,
-    IGNORE_LIST
+    IGNORE_LIST,
+    IS_PARSE_TABLE
 );
 $app->run();
 
