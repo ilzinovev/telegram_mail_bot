@@ -163,6 +163,7 @@ class App
             $subject = $this->message->getSubject();
             foreach ($this->is_parse_table as $item) {
                 if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0)) {
+                    $html = $this->message->getBodyHtml();
                     $dom = new DOMDocument();
                     $source = mb_convert_encoding($html, 'HTML-ENTITIES', 'utf-8');
                     $dom->loadHTML($source);
