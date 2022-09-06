@@ -46,10 +46,10 @@ class App
         if ($this->messages->count() > 0) {
             $emails = $this->mail_prepare($this->messages);
             if (!empty($emails)) {
-                if(isset($this->valid_mails))
-                 $this->send_mail_with_valid_address($emails, $this->valid_mails);
-                if(isset($this->valid_subjects))
-                 $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
+                if (isset($this->valid_mails))
+                    $this->send_mail_with_valid_address($emails, $this->valid_mails);
+                if (isset($this->valid_subjects))
+                    $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
             }
         }
         $this->connection->close();
@@ -66,9 +66,10 @@ class App
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
             $emails[$key]['html'] = $this->mail_clean(
                 strip_tags(
-                    str_replace('</div>',"\n",
-                    $this->html_parse_table($message->getBodyHtml() . $message->getBodyText()))
-                ));
+                    str_replace('<br />', "\n",
+                        str_replace('</div>', "\n",
+                            $this->html_parse_table($message->getBodyHtml() . $message->getBodyText()))
+                    )));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
 
@@ -80,8 +81,8 @@ class App
 
     public function check_id($id)
     {
-        $last_id_file_path = ROOT . '/app/'.$this->app_name.'_last_id.txt';
-        $last_id = (int)file_get_contents($this->app_name.'_last_id.txt', $last_id_file_path);
+        $last_id_file_path = ROOT . '/app/' . $this->app_name . '_last_id.txt';
+        $last_id = (int)file_get_contents($this->app_name . '_last_id.txt', $last_id_file_path);
         if (empty($last_id))
             file_put_contents($last_id_file_path, $id);
         if ($last_id < $id) {
@@ -93,7 +94,7 @@ class App
 
     public function check_stop_list($message)
     {
-        if(isset($this->stop_list)) {
+        if (isset($this->stop_list)) {
             $address = $message->getFrom()->getAddress();
             $subject = $message->getSubject();
             foreach ($this->stop_list as $item) {
@@ -135,8 +136,8 @@ class App
         if (mb_strlen($message) > 4096)
             $message = mb_substr($message, 0, 4096);
         $this->telegram_bot->sendMessage($this->chat_id, $message, 'HTML');
-        if($this->use_attachments)
-          $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
+        if ($this->use_attachments)
+            $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
     }
 
     public function send_attachments_to_telegram($attachments, $email)
