@@ -20,8 +20,9 @@ class App
     private $is_parse_table;
     private $message;
 
-    public function __construct($hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list,$is_parse_table)
+    public function __construct($app_name, $hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list,$is_parse_table)
     {
+        $this->app_name = $app_name;
         $this->server = new Server($hostname);
         $this->connection = $this->server->authenticate($user, $password);
         $this->mailbox = $this->connection->getMailbox('INBOX');
@@ -43,8 +44,10 @@ class App
         if ($this->messages->count() > 0) {
             $emails = $this->mail_prepare($this->messages);
             if (!empty($emails)) {
-                $this->send_mail_with_valid_address($emails, $this->valid_mails);
-                $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
+                if(isset($this->valid_mails))
+                 $this->send_mail_with_valid_address($emails, $this->valid_mails);
+                if(isset($this->valid_subjects))
+                 $this->send_mail_with_valid_subject($emails, $this->valid_subjects);
             }
         }
         $this->connection->close();
@@ -74,8 +77,8 @@ class App
 
     public function check_id($id)
     {
-        $last_id_file_path = ROOT . '/app/last_id.txt';
-        $last_id = (int)file_get_contents('last_id.txt', $last_id_file_path);
+        $last_id_file_path = ROOT . '/app/'.$this->app_name.'_last_id.txt';
+        $last_id = (int)file_get_contents($this->app_name.'_last_id.txt', $last_id_file_path);
         if (empty($last_id))
             file_put_contents($last_id_file_path, $id);
         if ($last_id < $id) {
@@ -87,13 +90,15 @@ class App
 
     public function check_stop_list($message)
     {
-        $address = $message->getFrom()->getAddress();
-        $subject = $message->getSubject();
-        foreach ($this->stop_list as $item) {
-            if (mb_strripos($subject, 'Re:') or mb_strripos($subject, 'Re:') === 0)
-                return false;
-            if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0))
-                return false;
+        if(isset($this->stop_list)) {
+            $address = $message->getFrom()->getAddress();
+            $subject = $message->getSubject();
+            foreach ($this->stop_list as $item) {
+                if (mb_strripos($subject, 'Re:') or mb_strripos($subject, 'Re:') === 0)
+                    return false;
+                if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0))
+                    return false;
+            }
         }
         return true;
     }
@@ -158,7 +163,7 @@ class App
 
     public function html_parse_table($html)
     {
-        if (!empty($html)) {
+        if (!empty($html) and isset($this->is_parse_table)) {
             $address = $this->message->getFrom()->getAddress();
             $subject = $this->message->getSubject();
             foreach ($this->is_parse_table as $item) {

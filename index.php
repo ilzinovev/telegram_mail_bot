@@ -1,8 +1,12 @@
 <?php
 require_once 'const.php';
+require_once 'call_center_mail_const.php';
+require_once 'deliveries_mail_const.php';
 require_once 'vendor/autoload.php';
 
-$app = new App(
+
+$app_call_center = new App(
+    'call_center',
     HOSTNAME,
     USERNAME,
     PASSWORD,
@@ -13,5 +17,22 @@ $app = new App(
     IGNORE_LIST,
     IS_PARSE_TABLE
 );
-$app->run();
+$app_call_center->run();
+
+
+$app_deliveries = new App(
+    'delivery_chat',
+    HOSTNAME,
+    USERNAME,
+    PASSWORD,
+    TELEGRAM_TOKEN,
+    DELIVERY_TELEGRAM_CHAT_ID,
+    DELIVERY_VALID_MAILS,
+    null,
+    null,
+    null
+);
+$app_deliveries->run();
+
+
 
