@@ -19,8 +19,9 @@ class App
     private $stop_list;
     private $is_parse_table;
     private $message;
+    private $use_attachments;
 
-    public function __construct($app_name, $hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list,$is_parse_table)
+    public function __construct($app_name, $hostname, $user, $password, $telegram_token, $chat_id, $valid_mails, $valid_subjects, $stop_list, $is_parse_table, $use_attachments = false)
     {
         $this->app_name = $app_name;
         $this->server = new Server($hostname);
@@ -37,6 +38,7 @@ class App
         $this->valid_subjects = $valid_subjects;
         $this->stop_list = $stop_list;
         $this->is_parse_table = $is_parse_table;
+        $this->use_attachments = $use_attachments;
     }
 
     public function run()
@@ -64,7 +66,8 @@ class App
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
             $emails[$key]['html'] = $this->mail_clean(
                 strip_tags(
-                    $this->html_parse_table($message->getBodyHtml() . $message->getBodyText())
+                    str_replace('</div>',"\n",
+                    $this->html_parse_table($message->getBodyHtml() . $message->getBodyText()))
                 ));
             $emails[$key]['attachments'] = $message->getAttachments();
         }
@@ -132,7 +135,8 @@ class App
         if (mb_strlen($message) > 4096)
             $message = mb_substr($message, 0, 4096);
         $this->telegram_bot->sendMessage($this->chat_id, $message, 'HTML');
-        $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
+        if($this->use_attachments)
+          $this->send_attachments_to_telegram($email['attachments'], $email['mail']);
     }
 
     public function send_attachments_to_telegram($attachments, $email)

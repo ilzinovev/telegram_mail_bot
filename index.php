@@ -15,7 +15,8 @@ $app_call_center = new App(
     VALID_MAILS,
     VALID_SUBJECTS,
     IGNORE_LIST,
-    IS_PARSE_TABLE
+    IS_PARSE_TABLE,
+    true
 );
 $app_call_center->run();
 
