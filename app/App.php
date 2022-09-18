@@ -112,6 +112,7 @@ class App
         foreach ($emails as $key => $email) {
             if (in_array($email['mail'], $valid_address)) {
                 $this->send_mail_to_telegram($email);
+                sleep(1);
                 unset($emails[$key]);
             }
         }
@@ -123,6 +124,7 @@ class App
             foreach ($valid_subject as $subject) {
                 if (mb_strripos($email['subject'], $subject) or mb_strripos($email['subject'], $subject) === 0)
                     $this->send_mail_to_telegram($email);
+                    sleep(1);
             }
         }
     }
