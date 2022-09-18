@@ -144,12 +144,18 @@ class App
 
     public function send_attachments_to_telegram($attachments, $email)
     {
+        $count = 0;
         foreach ($attachments as $attachment) {
             if (!empty($attachment->getFilename())) {
+                sleep(1);
                 $file_path = ROOT . '/tmp/' . str_replace('/', '', $attachment->getFilename());
                 file_put_contents($file_path, $attachment->getDecodedContent());
                 $document = new \CURLFile($file_path);
                 $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от ' . $email);
+                $count++;
+                if($count == 20)
+                    sleep(40);
+
                 array_map('unlink', array_filter((array)glob(ROOT . '/tmp/*')));
             }
         }
