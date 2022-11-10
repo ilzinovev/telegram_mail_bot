@@ -64,12 +64,21 @@ class App
             $emails[$key]['id'] = $message->getNumber();
             $emails[$key]['subject'] = $message->getSubject();
             $emails[$key]['mail'] = $message->getFrom()->getAddress();
-            $emails[$key]['html'] = $this->mail_clean(
-                strip_tags(
-                    str_replace('<br />', "\n",
-                        str_replace('</div>', "\n",
-                            $this->html_parse_table($message->getBodyHtml() . $message->getBodyText()))
-                    )));
+            switch ($emails[$key]['mail']) {
+                case '5post_cs@x5.ru':
+                    include_once 'app/parsers/5post_parser.php';
+                    $emails[$key]['html'] = fivepost_parse_mail($message->getBodyHtml());
+                    break;
+
+                default:
+                    $emails[$key]['html'] = $this->mail_clean(
+                        strip_tags(
+                            str_replace('<br />', "\n",
+                                str_replace('</div>', "\n",
+                                    $this->html_parse_table($message->getBodyHtml() . $message->getBodyText()))
+                            )));
+                    break;
+            }
             $emails[$key]['attachments'] = $message->getAttachments();
         }
 
@@ -124,7 +133,7 @@ class App
             foreach ($valid_subject as $subject) {
                 if (mb_strripos($email['subject'], $subject) or mb_strripos($email['subject'], $subject) === 0)
                     $this->send_mail_to_telegram($email);
-                    sleep(1);
+                sleep(1);
             }
         }
     }
@@ -150,12 +159,14 @@ class App
                 sleep(1);
                 $file_path = ROOT . '/tmp/' . str_replace('/', '', $attachment->getFilename());
                 file_put_contents($file_path, $attachment->getDecodedContent());
-                $document = new \CURLFile($file_path);
-                $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от ' . $email);
-                $count++;
-                if($count == 20)
-                    sleep(40);
-
+                $file_extension = new SplFileInfo($file_path);
+                if (!in_array($file_extension->getExtension(), ['jpg', 'jpeg', 'png'])) {
+                    $document = new \CURLFile($file_path);
+                    $this->telegram_bot->sendDocument($this->chat_id, $document, 'файл из письма от ' . $email);
+                    $count++;
+                    if ($count == 20)
+                        sleep(40);
+                }
                 array_map('unlink', array_filter((array)glob(ROOT . '/tmp/*')));
             }
         }
