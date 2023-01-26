@@ -68,6 +68,9 @@ class App
                 case '5post_cs@x5.ru':
                     $emails[$key]['html'] = $this->fivepost_parse_mail($message->getBodyHtml());
                     break;
+                case 'noreply@cdek.ru':
+                     $emails[$key]['html'] = $this->cdek_parse_mail($message->getBodyHtml());
+                     break;
 
                 default:
                     $emails[$key]['html'] = $this->mail_clean(
@@ -280,6 +283,19 @@ class App
         );
 
         return $content;
+    }
+
+    public function cdek_parse_mail($content)
+    {
+        $replace_nbsp = [
+            '&nbsp;', PHP_EOL
+        ];
+        $content = strip_tags(str_replace($replace_nbsp, "", $content));
+        $message_start_pos = strpos($content, "Уважаемый клиент!");
+        if ($message_start_pos) {
+            return substr($content, $message_start_pos);
+        }
+        return '';
     }
 
 }
