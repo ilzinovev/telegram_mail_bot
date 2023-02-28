@@ -30,6 +30,9 @@ class MailFilter
                 case 'noreply@cdek.ru':
                     $emails[$key]['html'] = MailParser::cdekParseMail($message->getBodyHtml());
                     break;
+                case 'care@cdek.ru':
+                    $emails[$key]['html'] = MailParser::cdekParseMail($message->getBodyHtml());
+                    break;
 
                 default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);
