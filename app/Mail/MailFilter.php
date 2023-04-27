@@ -33,6 +33,9 @@ class MailFilter
                 case 'care@cdek.ru':
                     $emails[$key]['html'] = MailParser::cdekParseMail($message->getBodyHtml());
                     break;
+                case 'robot@logsis.ru':
+                    $emails[$key]['html'] = MailParser::logsisParseMail($message->getBodyHtml());
+                    break;
 
                 default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);

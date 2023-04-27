@@ -135,4 +135,17 @@ class MailParser
         }
         return '';
     }
+
+    public static function logsisParseMail($content)
+    {
+        $replace_nbsp = [
+            '&nbsp;', PHP_EOL
+        ];
+        $content = strip_tags(str_replace($replace_nbsp, "", $content));
+        $message_start_pos = strpos($content, "Добрый день!");
+        if ($message_start_pos) {
+            return substr($content, $message_start_pos);
+        }
+        return '';
+    }
 }
