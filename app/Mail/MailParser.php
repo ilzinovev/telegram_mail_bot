@@ -133,6 +133,10 @@ class MailParser
         if ($message_start_pos) {
             return substr($content, $message_start_pos);
         }
+        $message_start_pos = strpos($content, "Добрый");
+        if ($message_start_pos) {
+            return substr($content, $message_start_pos);
+        }
         return '';
     }
 
