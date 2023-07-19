@@ -36,6 +36,9 @@ class MailFilter
                 case 'robot@logsis.ru':
                     $emails[$key]['html'] = MailParser::logsisParseMail($message->getBodyHtml());
                     break;
+                case 'info@logsis.ru':
+                    $emails[$key]['html'] = MailParser::infoLogsisParseMail($message->getBodyHtml());
+                    break;
 
                 default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);
@@ -69,8 +72,11 @@ class MailFilter
             $address = $message->getFrom()->getAddress();
             $subject = $message->getSubject();
             foreach ($this->stop_list as $item) {
-                if (mb_strripos($subject, 'Re:') or mb_strripos($subject, 'Re:') === 0)
-                    return false;
+                if (mb_strripos($subject, 'Re:') or mb_strripos($subject, 'Re:') === 0) {
+                    if ($address != 'info@logsis.ru') {
+                        return false;
+                    }
+                }
                 if ($address == $item[0] and (mb_strripos($subject, $item[1]) or mb_strripos($subject, $item[1]) === 0))
                     return false;
             }

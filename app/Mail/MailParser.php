@@ -157,4 +157,14 @@ class MailParser
         }
 
     }
+
+    public static function infoLogsisParseMail($content)
+    {
+        $replace_nbsp = [
+            '&nbsp;',
+            PHP_EOL
+        ];
+        $content      = strip_tags(str_replace($replace_nbsp, "", $content));
+        return $content;
+    }
 }
