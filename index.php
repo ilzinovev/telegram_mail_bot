@@ -16,7 +16,8 @@ $app_call_center = new App(
     VALID_SUBJECTS,
     IGNORE_LIST,
     IS_PARSE_TABLE,
-    true
+    true,
+    ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД']
 );
 $app_call_center->run();
 
@@ -31,7 +32,9 @@ $app_deliveries = new App(
     DELIVERY_VALID_MAILS,
     null,
     null,
-    null
+    null,
+    false,
+    ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД']
 );
 $app_deliveries->run();
 

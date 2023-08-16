@@ -15,10 +15,10 @@ class MailFilter
 
     }
 
-    public function mailsPrepare(MessageIterator $messages)
+    public function mailsPrepare(MessageIterator $messages, $folder)
     {
         foreach ($messages as $key => $message) {
-            if (!$this->checkId((string)$message->getNumber()) or !$this->checkStopList($message))
+            if (!$this->checkId((string)$message->getNumber(), $folder) or !$this->checkStopList($message))
                 continue;
             $emails[$key]['id'] = $message->getNumber();
             $emails[$key]['subject'] = $message->getSubject();
@@ -56,10 +56,11 @@ class MailFilter
             return false;
     }
 
-    protected function checkId($id)
+    protected function checkId($id, $folder)
     {
-        $last_id_file_path = ROOT . '/app/' . $this->app_name . '_last_id.txt';
-        $last_id = (int)file_get_contents(ROOT . '/app/' . $this->app_name . '_last_id.txt', $last_id_file_path);
+        $file = ROOT . '/app/' . $this->app_name . '_last_id_' . $folder . '.txt';
+        $last_id_file_path = $file;
+        $last_id = (int)file_get_contents($file , $last_id_file_path);
         if (empty($last_id))
             file_put_contents($last_id_file_path, $id);
         if ($last_id < $id) {

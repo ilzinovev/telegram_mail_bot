@@ -9,10 +9,11 @@ use DateTimeImmutable;
 
 class  MailConnection
 {
-    public function __construct($hostname, $user, $password)
+    public function __construct($hostname, $user, $password, $folder)
     {
         $this->server = new Server($hostname);
         $this->connection = $this->server->authenticate($user, $password);
+        $this->folder = $folder;
 
     }
 
@@ -23,7 +24,8 @@ class  MailConnection
 
     public function getMessages()
     {
-        $this->mailbox = $this->connection->getMailbox('INBOX');
+
+        $this->mailbox = $this->connection->getMailbox($this->folder);
         $this->date = new DateTimeImmutable(date('Y-m-d', time()));
         $this->search = new SearchExpression();
         $this->search->addCondition(new Since($this->date));

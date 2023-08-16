@@ -22,14 +22,12 @@ class App
         $valid_subjects,
         $stop_list,
         $is_parse_table,
-        $use_attachments = false)
-
+        $use_attachments = false,
+        $folders)
     {
-
-
-        $mailConnector = new MailConnection($hostname, $user, $password);
-        $this->messages = $mailConnector->getMessages();
-
+        $this->hostname = $hostname;
+        $this->user = $user;
+        $this->password = $password;
         $this->app_name = $app_name;
         $this->chat_id = $chat_id;
         $this->valid_mails = $valid_mails;
@@ -38,19 +36,25 @@ class App
         $this->is_parse_table = $is_parse_table;
         $this->use_attachments = $use_attachments;
         $this->telegram_token = $telegram_token;
+        $this->folders = $folders;
     }
 
     public function run()
     {
-        if ($this->messages->count() > 0) {
-            $emails = new MailFilter($this->stop_list, $this->is_parse_table, $this->app_name);
-            $emails = $emails->mailsPrepare($this->messages);
-            if (!empty($emails)) {
-                $mailSender = new MailSender($this->telegram_token, $this->chat_id, $this->use_attachments);
-                if (isset($this->valid_mails))
-                    $mailSender->sendMailWithValidAdress($emails, $this->valid_mails);
-                if (isset($this->valid_subjects))
-                    $mailSender->sendMailWithValidSubject($emails, $this->valid_subjects);
+        $folders = ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД'];
+        foreach ($folders as $folder) {
+            $mailConnector = new MailConnection($this->hostname, $this->user, $this->password, $folder);
+            $this->messages = $mailConnector->getMessages();
+            if ($this->messages->count() > 0) {
+                $emails = new MailFilter($this->stop_list, $this->is_parse_table, $this->app_name);
+                $emails = $emails->mailsPrepare($this->messages, $folder);
+                if (!empty($emails)) {
+                    $mailSender = new MailSender($this->telegram_token, $this->chat_id, $this->use_attachments);
+                    if (isset($this->valid_mails))
+                        $mailSender->sendMailWithValidAdress($emails, $this->valid_mails);
+                    if (isset($this->valid_subjects))
+                        $mailSender->sendMailWithValidSubject($emails, $this->valid_subjects);
+                }
             }
         }
     }
