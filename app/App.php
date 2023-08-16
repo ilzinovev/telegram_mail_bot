@@ -41,8 +41,7 @@ class App
 
     public function run()
     {
-        $folders = ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД'];
-        foreach ($folders as $folder) {
+        foreach ($this->folders as $folder) {
             $mailConnector = new MailConnection($this->hostname, $this->user, $this->password, $folder);
             $this->messages = $mailConnector->getMessages();
             if ($this->messages->count() > 0) {
