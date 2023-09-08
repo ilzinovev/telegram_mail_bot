@@ -42,6 +42,9 @@ class MailFilter
                 case 'info_SPB@logsis.ru':
                     $emails[$key]['html'] = MailParser::infoLogsisParseMail($message->getBodyHtml());
                     break;
+                case 'Reutova.E@giper.fm':
+                    $emails[$key]['html'] = MailParser::ReutovaDeliveryParseMail($message->getBodyText());
+                    break;
 
                 default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);

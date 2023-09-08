@@ -167,4 +167,8 @@ class MailParser
         $content      = strip_tags(str_replace($replace_nbsp, "", $content));
         return $content;
     }
+     public static function ReutovaDeliveryParseMail($content)
+    {
+        return strip_tags($content);
+    }
 }
