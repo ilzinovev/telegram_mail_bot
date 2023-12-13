@@ -2,6 +2,7 @@
 require_once 'const.php';
 require_once 'call_center_mail_const.php';
 require_once 'deliveries_mail_const.php';
+require_once 'logistic_mail_const.php';
 require_once 'vendor/autoload.php';
 
 
@@ -37,6 +38,24 @@ $app_deliveries = new App(
     ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД']
 );
 $app_deliveries->run();
+
+
+$app_logistic = new App(
+    'logistic_chat',
+    HOSTNAME,
+    USERNAME,
+    PASSWORD,
+    TELEGRAM_TOKEN,
+    LOGISTIC_TELEGRAM_CHAT_ID,
+    null,
+    LOGISTIC_VALID_SUBJECTS,
+    null,
+    null,
+    false,
+    ['INBOX', 'INBOX.ДАЛЛИ', 'INBOX.ДПД']
+);
+$app_logistic->run();
+
 
 
 
