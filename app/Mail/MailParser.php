@@ -167,8 +167,18 @@ class MailParser
         $content      = strip_tags(str_replace($replace_nbsp, "", $content));
         return $content;
     }
-     public static function ReutovaDeliveryParseMail($content)
+    public static function ReutovaDeliveryParseMail($content)
     {
         return strip_tags($content);
+    }
+
+    public static function AbdinParseMail($content)
+    {
+         $replace_nbsp = [
+            '&nbsp;',
+            PHP_EOL
+        ];
+        $content      = strip_tags(str_replace($replace_nbsp, "", $content));
+        return $content;
     }
 }

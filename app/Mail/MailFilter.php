@@ -46,6 +46,10 @@ class MailFilter
                     $emails[$key]['html'] = MailParser::ReutovaDeliveryParseMail($message->getBodyText());
                     break;
 
+               case 'abdin@fim.ltd':
+                    $emails[$key]['html'] = MailParser::AbdinParseMail($message->getBodyText());
+                    break;
+
                 default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);
                     break;
