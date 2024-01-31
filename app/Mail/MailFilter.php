@@ -49,8 +49,16 @@ class MailFilter
                case 'abdin@fim.ltd':
                     $emails[$key]['html'] = MailParser::AbdinParseMail($message->getBodyText());
                     break;
-
-                default:
+               case 'Tatyana.Melnik@dellin.ru':
+                   $subject = $message->getSubject();
+                   if($subject == 'Автоматическое уведомление о приходе груза'){
+                       $emails[$key]['html'] = MailParser::MelnikParseMail($message->getBodyHtml());
+                   }
+                   else{
+                       unset($emails[$key]);
+                   }
+                    break;
+               default:
                     $emails[$key]['html'] = MailParser::mailClean($message, $this->is_parse_table);
                     break;
             }

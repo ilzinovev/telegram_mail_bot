@@ -2,7 +2,7 @@
 
 namespace Mail;
 
-use DOMDocument;
+use \DOMDocument;
 
 class MailParser
 {
@@ -180,5 +180,28 @@ class MailParser
         ];
         $content      = strip_tags(str_replace($replace_nbsp, "", $content));
         return $content;
+    }
+
+    public static function MelnikParseMail($message)
+    {
+        $dom = new \DOMDocument;
+        $dom->loadHTML($message);
+        foreach ($dom->getElementsByTagName('a') as $node) {
+            $all_text[] = $node->textContent;
+            $all_links[] = $node->getAttribute('href');
+        }
+        $output = '';
+        if(isset($all_links[0],$all_text[0])){
+            $output = '№ Накладной: '.$all_text[0].' '.$all_links[0];
+        }
+        preg_match('/Груз можно забрать по адресу: (.*?) Акция/', strip_tags($message), $matches);
+        $address = $matches[1];
+        if(!empty($address))
+        {
+            $output .= PHP_EOL.' Груз можно забрать по адресу:' . $address;
+        }
+
+        return $output;
+
     }
 }
