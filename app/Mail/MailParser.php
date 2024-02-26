@@ -194,7 +194,7 @@ class MailParser
         if(isset($all_links[0],$all_text[0])){
             $output = '№ Накладной: '.$all_text[0].' '.$all_links[0];
         }
-        preg_match('/Груз можно забрать по адресу: (.*?) Акция/', strip_tags($message), $matches);
+        preg_match('/Груз можно забрать по адресу:\s*(.*?)\s*Мы можем привезти груз/', strip_tags($message), $matches);
         $address = $matches[1];
         if(!empty($address))
         {
