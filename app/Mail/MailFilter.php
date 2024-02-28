@@ -47,7 +47,7 @@ class MailFilter
                     break;
 
                case 'abdin@fim.ltd':
-                    $emails[$key]['html'] = MailParser::AbdinParseMail($message->getBodyText());
+                    $emails[$key]['html'] = MailParser::AbdinParseMail($message->getBodyHtml());
                     break;
                case 'Tatyana.Melnik@dellin.ru':
                    $subject = $message->getSubject();
